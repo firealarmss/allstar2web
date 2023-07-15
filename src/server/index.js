@@ -121,28 +121,33 @@ udpSocket.on('message', (message) => {
     if (packetSize >= 32) {
         const packetTypeAsNum = message.readUInt32LE(20);
         let packetType;
-
         if (packetTypeAsNum === 0) {
-            packetType = packetSize === 32 ? 'End' : 'Audio';
+            if (packetSize === 32) {
+                packetType = "End";
+            } else {
+                packetType = "Audio";
+            }
         } else if (packetTypeAsNum === 2) {
-            packetType = 'Start';
+            packetType = "Start";
         } else {
-            packetType = 'Audio';
+            packetType = "Audio";
         }
+        console.log(`[INFO] RECEIVED PACKET: ${packetType} (length: ${packetSize}, ptt: ${message.readUInt32BE(12)})`);
 
-        if (debug) {
-            logger.info(`Received voice traffic: PacketType: ${packetType}`);
+        if (packetType === "Audio") {
+            const audioData = message.slice(32);
+            const srcId = (message[message.length - 4] << 8) | message[message.length - 3];
+            const dstId = (message[message.length - 2] << 8) | message[message.length - 1];
+            console.log(`Received voice traffic: SRC_ID: ${srcId}, DST_ID: ${dstId}`);
+
+            io.emit("channelAudio", JSON.stringify({
+                "audio": audioData,
+                "dstId": dstId,
+                "srcId": srcId
+            }));
         }
-
-        const audioData = message.slice(0, packetSize - 4);
-
-        io.emit("channelAudio", JSON.stringify({
-            "audio": audioData,
-            "packetType": packetType
-        }));
-
-        isReceivingMessage = false;
     }
+    isReceivingMessage = false;
 });
 //Future additions
 let ignore_peers = [
