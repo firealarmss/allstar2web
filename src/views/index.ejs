@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+<!--
+    Caleb, KO4UYJ
+    Inspired by https://github.com/firealarmss/dvm2web/
+-->
 <head>
-    <title>Audio Streaming</title>
+    <title>Listening to <%= hostCallsign %>'s Allstar Node</title>
     <script src="/public/pcm-player.js"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
@@ -103,14 +107,14 @@
     let pwr_on = false;
     let voiceActive = false;
     let talking;
-    let current_channel = "xOPS";
+    let current_channel = "<%= hostCallsign %>'s Allstar";
     let current_zone = "Centrunk";
     let player;
     function start() {
         var audioCtx = new(window.AudioContext || window.webkitAudioContext)();
         pwr_on = true;
         setTimeout(function () {
-            document.getElementById('line1').innerHTML = current_zone;
+      //      document.getElementById('line1').innerHTML = current_zone;
             document.getElementById('line2').innerHTML = current_channel;
 
             player = new PCMPlayer({
@@ -123,12 +127,8 @@
             });
             socket.on('channelAudio', function (msg) {
                 const rcv_data = JSON.parse(msg);
-                let data = new Uint8Array(rcv_data.audio.data);
-                current_channel = "1";
-                talking = "123456";
-                //var dstEjs = '<%= dstTg %>'
-          //      current_channel = tg_alias(dstEjs);
-                player.feed(data);
+                let audioData = new Uint8Array(rcv_data.audio.data);
+                player.feed(audioData);
             });
             let lineToggle = false;
             let intervalId;
@@ -159,15 +159,14 @@
             }
 
             function audioStopped() {
-      //          setTimeout(function () {
-    //                document.getElementById('line2').innerHTML = current_channel;
-  //              }, 2000);
+                //ig you could do som useful here? This was from dvm2web
             }
 
             function audioStarted() {
-//                document.getElementById('line2').innerHTML = "ID: " + talking;
+                //ig you could do som useful here? This was from dvm2web
             }
         }, 1500);
+        //A dvm2web whacker feature that is just too cool to remove
         socket.on("EMERG", function(msg){
             let dstId = msg.dstId;
             let srcId = msg.srcId;
@@ -252,36 +251,15 @@
             start();
         }
     }
-
-    function tg_alias(tg_alias_name) {
-        const alias_list = {
-            31611: "xOPS",
-            31612: "xTAC 1",
-            1056: "13-5L Main"
-        };
-        if (tg_alias_name in alias_list) {
-            return alias_list[tg_alias_name];
-        } else {
-            return "TGID: " + tg_alias_name.toString();
-        }
-    }
     function send_emerg(){
         socket.emit("EMERG", {srcId: "123456", dstId: current_channel});
     }
-
 </script>
 </body>
 <footer>
     <div style="text-align: center;">
-        <b>Notes:</b>
-        <div style="display: flex; justify-content: center;">
-            <ol style="text-align: left;">
-                <li>Who's talking display may not show correct RID</li>
-                <li>The active talk group that was last heard will display <i>after</i> the person stops talking</li>
-                <li>Must hit power button to turn the radio on</li>
-            </ol>
-        </div>
-        <b>A php production</b>
+        <b>Written by Caleb, KO4UYJ</b>
     </div>
 </footer>
 </html>
+

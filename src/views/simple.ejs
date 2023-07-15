@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+    Caleb, KO4UYJ
+    Inspired by https://github.com/firealarmss/dvm2web/
+-->
+<head>
+    <title>Listening to <%= hostCallsign %>'s Allstar Node</title>
+    <script src="/public/pcm-player.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: white;
+            text-align: center;
+            color: white;
+        }
+        .pwr_button {
+            font-family: Helvetica,serif;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+<div style="text-align: center;">
+        <button id="pwr_button" class="pwr_button" onclick="radioPower()">Start/Stop Audio</button>
+</div>
+
+<script>
+    let socket = io();
+
+    let pwr_on = false;
+    let voiceActive = false;
+    let talking;
+    let current_channel = "xOPS";
+    let current_zone = "Centrunk";
+    let player;
+    function start() {
+        pwr_on = true;
+        setTimeout(function () {
+            player = new PCMPlayer({
+                encoding: '16bitInt',
+                channels: 1,
+                sampleRate: 8000,
+                flushingTime: 2000,
+                onAudioEnd: audioStopped,
+                onAudioStart: audioStarted
+            });
+            socket.on('channelAudio', function (msg) {
+                const rcv_data = JSON.parse(msg);
+                let audioData = new Uint8Array(rcv_data.audio.data);
+                player.feed(audioData);
+            });
+        }, 1500);
+    }
+    function radioOff(){
+        pwr_on = false;
+        socket.off('channelAudio');
+    }
+    function radioPower(){
+        if (pwr_on){
+            radioOff();
+        } else {
+            start();
+        }
+    }
+    function audioStopped() {
+        //ig you could do som useful here? This was from dvm2web
+    }
+
+    function audioStarted() {
+        //ig you could do som useful here? This was from dvm2web
+    }
+</script>
+</body>
+<footer>
+    <b>KO4UYJ, Caleb</b>
+</footer>
+</html>

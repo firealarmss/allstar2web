@@ -1,8 +1,26 @@
+#
+# Caleb, KO4UYJ
+# Inspired by https://github.com/firealarmss/dvm2web/
+#
+
+
+#Web server bind port
 httpPort: 3000
+
+#Allstarlink USRP send port
 udpRxPort: 34001
+
+#Allstar USRP listen address
 udpRxAddress: 127.0.0.1
+
+#Web server bind address
 httpAddress: 0.0.0.0
-noCommsHost: 127.0.0.1
-webHookUrl: ""
-dstTg: 1
+
+#Display XTL head or display stupid simple page at default "/" route
+fancyDisplayDefault: false
+
+#Callsign of choice to display
+hostCallsign: "CHANGE ME"
+
+#Verbose output
 debug: false
