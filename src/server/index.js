@@ -83,6 +83,14 @@ app.get('/', (req, res) => {
     }
 });
 
+app.get('/simple', (req, res) => {
+    res.render('simple', {hostCallsign: hostCallsign});
+});
+
+app.get('/fancy', (req, res) => {
+    res.render('index', {hostCallsign: hostCallsign});
+});
+
 let isReceivingMessage;
 udpSocket.on('message', (message) => {
     const packetSize = message.length;
