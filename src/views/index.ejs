@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Audio Streaming</title>
+    <script src="/public/pcm-player.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: #000101;
+            text-align: center;
+            color: white;
+        }
+
+        .container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .image {
+            display: block;
+        }
+
+        .line2 {
+            position: absolute;
+            top: 43%;
+            left: 51%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            color: black;
+            font-size: 25px;
+            font-family: Helvetica, serif;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .line1 {
+            position: absolute;
+            top: 32%;
+            left: 51%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            color: black;
+            font-size: 20px;
+            font-family: Helvetica, serif;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .pwr_button {
+            position: absolute;
+            border-radius: 100%;
+            cursor: pointer;
+            top: 69%;
+            left: 19%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            font-size: 13px;
+            font-family: Helvetica,serif;
+            font-weight: bold;
+            text-align: center;
+            color: transparent;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            border: 0;
+        }
+        .emerg_button {
+            position: absolute;
+            border-radius: 100%;
+            cursor: pointer;
+            top: 16%;
+            left: 96%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            font-size: 13px;
+            font-family: Helvetica,serif;
+            font-weight: bold;
+            text-align: center;
+            color: transparent;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            border: 0;
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+<div style="text-align: center;">
+    <div class="container">
+        <img class="image" src="/public/o5.jpg" alt="Head">
+        <div id="line1" class="line1"></div>
+        <div id="line2" class="line2"></div>
+        <button id="pwr_button" class="pwr_button" onclick="radioPower()">PW</button>
+        <button id="emerg_button" class="emerg_button" onclick="send_emerg()">EM</button>
+    </div>
+</div>
+
+<script>
+    let socket = io();
+
+    let pwr_on = false;
+    let voiceActive = false;
+    let talking;
+    let current_channel = "xOPS";
+    let current_zone = "Centrunk";
+    let player;
+    function start() {
+        var audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+        pwr_on = true;
+        setTimeout(function () {
+            document.getElementById('line1').innerHTML = current_zone;
+            document.getElementById('line2').innerHTML = current_channel;
+
+            player = new PCMPlayer({
+                encoding: '16bitInt',
+                channels: 1,
+                sampleRate: 8000,
+                flushingTime: 2000,
+                onAudioEnd: audioStopped,
+                onAudioStart: audioStarted
+            });
+            socket.on('channelAudio', function (msg) {
+                const rcv_data = JSON.parse(msg);
+                let data = new Uint8Array(rcv_data.audio.data);
+                current_channel = tg_alias(rcv_data.dstId);
+                talking = rcv_data.srcId;
+                var dstEjs = '<%= dstTg %>'
+          //      current_channel = tg_alias(dstEjs);
+                player.feed(data);
+            });
+            let lineToggle = false;
+            let intervalId;
+
+            socket.on('disconnect', function () {
+                intervalId = setInterval(toggleLines, 2000);
+            });
+            socket.on('connection', function (){
+                console.log("reconnected");
+                clearInterval(intervalId);
+                const currentChannelElement = document.getElementById('line2');
+                currentChannelElement.innerHTML = current_channel;
+            });
+
+            function toggleLines() {
+                const line2Element = document.getElementById('line2');
+                const currentChannelElement = document.getElementById('line2');
+
+                if (lineToggle) {
+                    line2Element.innerHTML = "Site Trunking";
+                    currentChannelElement.innerHTML = current_channel;
+                } else {
+                    line2Element.innerHTML = current_channel;
+                    currentChannelElement.innerHTML = "Site Trunking";
+                }
+
+                lineToggle = !lineToggle;
+            }
+
+            function audioStopped() {
+                setTimeout(function () {
+                    document.getElementById('line2').innerHTML = current_channel;
+                }, 2000);
+            }
+
+            function audioStarted() {
+                document.getElementById('line2').innerHTML = "ID: " + talking;
+            }
+        }, 1500);
+        socket.on("EMERG", function(msg){
+            let dstId = msg.dstId;
+            let srcId = msg.srcId;
+            let lineToggle = false;
+            let intervalId;
+
+            if (!voiceActive && dstId === current_channel) {
+                emergency_tone_generate();
+                intervalId = setInterval(toggleLines, 2000);
+                voiceActive = true;
+            }
+            function toggleLines() {
+                const line2Element = document.getElementById('line2');
+                const currentChannelElement = document.getElementById('line2');
+
+                if (lineToggle) {
+                    line2Element.innerHTML = "EM: " + srcId;
+                    currentChannelElement.innerHTML = current_channel;
+                } else {
+                    line2Element.innerHTML = current_channel;
+                    currentChannelElement.innerHTML = "EM: " + srcId;
+                }
+
+                lineToggle = !lineToggle;
+            }
+            setTimeout(function (){
+                clearInterval(intervalId);
+                document.getElementById("line2").innerHTML = current_channel;
+                voiceActive = false;
+            }, 20000);
+        });
+        function emergency_tone_generate(){
+            beep(610, 500, 20, 'sine');
+            setTimeout(function () {
+                beep(910, 500, 20, 'sine');
+            }, 500);
+            setTimeout(function () {
+                beep(610, 500, 20, 'sine');
+            }, 1000);
+            setTimeout(function () {
+                beep(910, 500, 20, 'sine');
+            }, 1500);
+        }
+
+
+        function beep(frequency, duration, volume, type) {
+
+            var oscillator = audioCtx.createOscillator();
+            var gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            vol = 1;
+            gainNode.gain.value = vol;
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+
+            oscillator.start();
+
+            setTimeout(
+                function () {
+                    oscillator.stop();
+                },
+                duration
+            );
+        }
+    }
+    async function radioOff(){
+        pwr_on = false;
+        await socket.off('channelAudio');
+        document.getElementById('line1').innerHTML = "PHP Says goodbye";
+        document.getElementById('line2').innerHTML = "https://discord.gg/ctrs";
+        setTimeout(function (){
+            document.getElementById('line1').innerHTML = "";
+            document.getElementById('line2').innerHTML = "";
+        }, 1500);
+    }
+    function radioPower(){
+        if (pwr_on){
+            radioOff();
+        } else {
+            start();
+        }
+    }
+
+    function tg_alias(tg_alias_name) {
+        const alias_list = {
+            31611: "xOPS",
+            31612: "xTAC 1",
+            1056: "13-5L Main"
+        };
+        if (tg_alias_name in alias_list) {
+            return alias_list[tg_alias_name];
+        } else {
+            return "TGID: " + tg_alias_name.toString();
+        }
+    }
+    function send_emerg(){
+        socket.emit("EMERG", {srcId: "123456", dstId: current_channel});
+    }
+
+</script>
+</body>
+<footer>
+    <div style="text-align: center;">
+        <b>Notes:</b>
+        <div style="display: flex; justify-content: center;">
+            <ol style="text-align: left;">
+                <li>Who's talking display may not show correct RID</li>
+                <li>The active talk group that was last heard will display <i>after</i> the person stops talking</li>
+                <li>Must hit power button to turn the radio on</li>
+            </ol>
+        </div>
+        <b>A php production</b>
+    </div>
+</footer>
+</html>

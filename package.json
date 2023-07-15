@@ -1,0 +1,42 @@
+{
+  "name": "dvm2web",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "bin": "index.js",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "pkg": {
+    "scripts": "*.js",
+    "assets": [
+      "*.js",
+      "public/**",
+      "index.html"
+    ],
+    "output": ".",
+    "targets": [
+      "node16-windows-x64"
+    ]
+  },
+  "keywords": [],
+  "author": "Caleb, KO4UYJ",
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "@babel/core": "^7.22.8",
+    "@babel/node": "^7.22.6",
+    "@babel/preset-env": "^7.22.7",
+    "commander": "^11.0.0",
+    "dgram": "^1.0.1",
+    "discord.js": "^14.11.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^3.3.1",
+    "ping": "^0.4.4",
+    "socket.io": "^4.7.1",
+    "wav": "^1.0.2"
+  }
+}

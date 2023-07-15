@@ -1,0 +1,4 @@
+*.exe
+node_modules/*
+node_modules/**
+src/server/config.yml
