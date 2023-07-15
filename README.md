@@ -4,6 +4,10 @@
 
 Play a allstarlink node to a web interface.
 
+Written by Caleb, KO4UYJ
+
+Inspired by https://github.com/firealarmss/dvm2web/
+
 ## Getting started
 
 The target server is allstarlink USRP
@@ -62,3 +66,9 @@ node index.js --config config.yml
 ### Usage
 
 http://localhost:3000 will be the default location of the app
+
+/fancy will show the XTL fancy page at all times
+
+/simple will show the simple page at all times
+
+Default "/" is defined by the user in the config
