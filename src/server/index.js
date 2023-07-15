@@ -132,19 +132,17 @@ udpSocket.on('message', (message) => {
         } else {
             packetType = "Audio";
         }
-        console.log(`[INFO] RECEIVED PACKET: ${packetType} (length: ${packetSize}, ptt: ${message.readUInt32BE(12)})`);
+        //console.log(`[INFO] RECEIVED PACKET: ${packetType} (length: ${packetSize}, ptt: ${message.readUInt32BE(12)})`);
 
         if (packetType === "Audio") {
             const audioData = message.slice(32, 352);
-            const srcId = (message[message.length - 4] << 8) | message[message.length - 3];
-            const dstId = (message[message.length - 2] << 8) | message[message.length - 1];
-            console.log(`Received voice traffic: SRC_ID: ${srcId}, DST_ID: ${dstId}`);
-
-            io.emit("channelAudio", JSON.stringify({
-                "audio": audioData,
-                "dstId": dstId,
-                "srcId": srcId
+	    const decodedData = new Uint8Array(message);
+	    io.emit("channelAudio", JSON.stringify({
+                "audio": audioData
             }));
+	    if (debug){
+	        logger.debug(decodedData);
+	    }
         }
     }
     isReceivingMessage = false;

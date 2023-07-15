@@ -124,9 +124,9 @@
             socket.on('channelAudio', function (msg) {
                 const rcv_data = JSON.parse(msg);
                 let data = new Uint8Array(rcv_data.audio.data);
-                current_channel = tg_alias(rcv_data.dstId);
-                talking = rcv_data.srcId;
-                var dstEjs = '<%= dstTg %>'
+                current_channel = "1";
+                talking = "123456";
+                //var dstEjs = '<%= dstTg %>'
           //      current_channel = tg_alias(dstEjs);
                 player.feed(data);
             });
@@ -159,13 +159,13 @@
             }
 
             function audioStopped() {
-                setTimeout(function () {
-                    document.getElementById('line2').innerHTML = current_channel;
-                }, 2000);
+      //          setTimeout(function () {
+    //                document.getElementById('line2').innerHTML = current_channel;
+  //              }, 2000);
             }
 
             function audioStarted() {
-                document.getElementById('line2').innerHTML = "ID: " + talking;
+//                document.getElementById('line2').innerHTML = "ID: " + talking;
             }
         }, 1500);
         socket.on("EMERG", function(msg){
