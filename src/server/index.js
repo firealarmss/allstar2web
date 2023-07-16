@@ -66,9 +66,18 @@ try {
             `\n     Fancy display by default: ${fancyDisplayDefault}` +
             `\n     Debug: ${debug}`
         );
+        server.listen(httpPort, httpAddress, () => {
+            if (debug) {
+                logger.warn('Debug mode enabled');
+            }
+            logger.info(`HTTP Listening on ${httpAddress}:${httpPort}`);
+        });
+        udpSocket.bind(udpRxPort, udpRxAddress,() => {
+            logger.info(`Listening for DVM data on ${udpRxAddress}:${udpRxPort}`);
+        });
     });
 } catch (err){
-    logger.error(`Error reading config file   ${err}`)
+    logger.error(`Error reading config file ${err}`);
 }
 app.set("views", path.join("../views"));
 app.set('view engine', 'ejs');
@@ -136,14 +145,4 @@ io.on("connection",function (socket){
             logger.info(`Ignored emerg from: ${msg.srcId}`)
         }
     });
-});
-
-server.listen(httpPort, httpAddress, () => {
-    if (debug) {
-        logger.warn('Debug mode enabled');
-    }
-    logger.info(`HTTP Listening on ${httpAddress}:${httpPort}`);
-});
-udpSocket.bind(udpRxPort, udpRxAddress,() => {
-    logger.info(`Listening for DVM data on ${udpRxAddress}:${udpRxPort}`);
 });
