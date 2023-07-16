@@ -56,8 +56,12 @@ sudo astres.sh
 
 Make sure you have [node installed](https://nodejs.org/)
 
+Note: Minimum supported is node version 16. NVM is recommended to manage node installed versions
+
 ```bash
-cd allstar2web/src/server
+cd allstar2web
+sudo npm i
+cd src/server
 node index.js --config config.yml
 ```
 
