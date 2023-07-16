@@ -1,8 +1,8 @@
-# allstar2dvm
+# allstar2web
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge)](https://www.gnu.org/licenses/gpl-3.0)
 
-Play a allstarlink node to a web interface.
+Play an allstarlink node to a web interface.
 
 Written by Caleb, KO4UYJ
 
@@ -10,11 +10,9 @@ Inspired by https://github.com/firealarmss/dvm2web/
 
 ## Getting started
 
-The target server is allstarlink USRP
+The target server is Allstarlink USRP
 
-Note: The target is Allstarlink. This has NOT been tested on hamvoip but should work
-
-Hamvoip will never be directly supported in this repository. hamvoip should still work regardless
+HamVoip will never be directly supported in this repository, however it should still work.
 
 ### Configure allstar2web
 
@@ -28,7 +26,7 @@ Find `noload => chan_usrp.so ;`
 
 Replace with `load => chan_usrp.so ;`
 
-Decide the allstar node you wanna use. Can not be one connected to a radio.
+Decide the allstar node you want to use. It can not be one connected to a radio.
 
 ```bash
 nano /etc/asterisk/rpt.conf
@@ -50,7 +48,7 @@ Make sure all of them have a `;` in front of them except the one with USRP. It s
 ```bash
 rxchannel = USRP/127.0.0.1:34001:32001
 ```
-Then restart it all and hope for the best
+Then, restart it all and hope for the best
 ```bash
 sudo astres.sh
 ```
