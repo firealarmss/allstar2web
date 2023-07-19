@@ -3,6 +3,11 @@
 # Inspired by https://github.com/firealarmss/dvm2web/
 #
 
+#FULL path to allstar2web
+allstar2web_path: 'E:\allstar2web\'
+
+#Windows or linux host (windows, linux)
+osType: "windows"
 
 #Web server bind port
 httpPort: 3000

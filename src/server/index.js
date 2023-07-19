@@ -23,6 +23,8 @@ let udpRxAddress = "127.0.0.1";
 let httpAddress = "0.0.0.0";
 let fancyDisplayDefault = false;
 let hostCallsign = "N0PE";
+let allstar2web_path = '.';
+let osType = "windows"
 let debug = false;
 
 const program = new Command();
@@ -54,10 +56,14 @@ try {
         udpRxAddress = obj.udpRxAddress;
         httpAddress = obj.httpAddress;
         fancyDisplayDefault = obj.fancyDisplayDefault;
+        allstar2web_path = obj.allstar2web_path;
         hostCallsign = obj.hostCallsign;
+        osType = obj.osType;
         debug = obj.debug;
         logger.info(
             "Config Values:" +
+            `\n     Path to allstar2web: ${allstar2web_path}` +
+            `\n     Host OS: ${osType}` +
             `\n     HTTP Port: ${httpPort}` +
             `\n     UDP RX Port: ${udpRxPort}` +
             `\n     UDP RX Address: ${udpRxAddress}` +
@@ -75,14 +81,26 @@ try {
         udpSocket.bind(udpRxPort, udpRxAddress,() => {
             logger.info(`Listening for DVM data on ${udpRxAddress}:${udpRxPort}`);
         });
+        if (osType === "windows") {
+            app.set("views", path.join(`${allstar2web_path}src\\views`));
+            logger.debug(`${allstar2web_path}src\\views`);
+        } else if (osType === "linux"){
+            app.set("views", path.join(`${allstar2web_path}src/views`));
+        } else {
+            logger.error("Not supported OS");
+        }
+        app.set('view engine', 'ejs');
+        if (osType === "windows") {
+            app.use('/public', express.static(`${allstar2web_path}src\\public`));
+        } else if (osType === "linux"){
+            app.use('/public', express.static(`${allstar2web_path}src/public`));
+        } else {
+            logger.error("Not supported OS");
+        }
     });
 } catch (err){
     logger.error(`Error reading config file ${err}`);
 }
-app.set("views", path.join("../views"));
-app.set('view engine', 'ejs');
-app.use('/public', express.static('../public'))
-
 app.get('/', (req, res) => {
    // res.sendFile(__dirname + "/index.html");
     if (fancyDisplayDefault) {
@@ -144,5 +162,12 @@ io.on("connection",function (socket){
         } else {
             logger.info(`Ignored emerg from: ${msg.srcId}`)
         }
+    });
+    // Initial support for sending audio to allstar from browser
+    // TODO: Make work
+    socket.on("sendAudio", function(msg){
+      //  let audioData = new Uint8Array(msg);
+       //logger.debug(audioData);
+     //   logger.debug(audioData.length);
     });
 });

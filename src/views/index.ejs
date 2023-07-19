@@ -110,8 +110,61 @@
     let current_channel = "<%= hostCallsign %>'s Allstar";
     let current_zone = "Centrunk";
     let player;
+    let audioCtx;
+    let mediaStream;
+    let audioStreamNode;
+
     function start() {
-        var audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+        function resampleAudio(audioBuffer, targetSampleRate) {
+            const samples = audioBuffer.length;
+            const ratio = audioCtx.sampleRate / targetSampleRate;
+            const newSamples = Math.round(samples / ratio);
+            const result = new Float32Array(newSamples);
+            let offsetResult = 0;
+            let offsetBuffer = 0;
+
+            while (offsetResult < result.length) {
+                const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
+                let accum = 0;
+                let count = 0;
+                for (let i = offsetBuffer; i < nextOffsetBuffer && i < samples; i++) {
+                    accum += audioBuffer[i];
+                    count++;
+                }
+                result[offsetResult] = accum / count;
+                offsetResult++;
+                offsetBuffer = nextOffsetBuffer;
+            }
+
+            return result;
+        }
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Initial support for sending audio to allstar from browser
+        // TODO: Make work
+    /*
+       navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => {
+                mediaStream = stream;
+                audioStreamNode = audioCtx.createMediaStreamSource(stream);
+
+                // Create a ScriptProcessorNode to process audio data in real-time
+                const scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+                audioStreamNode.connect(scriptNode);
+                scriptNode.connect(audioCtx.destination);
+
+                scriptNode.onaudioprocess = function (e) {
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    // Resample the audio data to 8000Hz sample rate
+                    const resampledData = resampleAudio(inputData, 8000);
+                    // Send audio data to the server via WebSocket
+                    socket.emit('sendAudio', resampledData);
+                };
+            })
+            .catch((err) => {
+                console.error("Error accessing microphone:", err);
+            });
+    */
+
         pwr_on = true;
         setTimeout(function () {
       //      document.getElementById('line1').innerHTML = current_zone;
@@ -235,6 +288,9 @@
         }
     }
     async function radioOff(){
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+        }
         pwr_on = false;
         await socket.off('channelAudio');
         document.getElementById('line1').innerHTML = "PHP Says goodbye";
@@ -253,6 +309,27 @@
     }
     function send_emerg(){
         socket.emit("EMERG", {srcId: "123456", dstId: current_channel});
+    }
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = function (event) {
+                audioChunks.push(event.data);
+                if (mediaRecorder.state === "inactive") {
+                    let audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    audioChunks = [];
+                    socket.emit('sendAudio', audioBlob);
+                }
+            };
+            mediaRecorder.start();
+        } catch (err) {
+            console.error("Error accessing microphone:", err);
+        }
+    }
+
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
     }
 </script>
 </body>
