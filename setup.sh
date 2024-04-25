@@ -1,10 +1,10 @@
 #!/bin/bash
 echo "installing packages"
-apt install nodejs
+apt install nodejs npm
 sleep 1
 echo "Updating repo"
 git pull
-sleep2
+sleep 2
 echo "installing node packages"
 npm i
 sleep 2
